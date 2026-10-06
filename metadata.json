@@ -1,0 +1,6 @@
+{
+  "name": "detikPortal - Berita Terkini & Breaking News",
+  "description": "Portal berita Indonesia terkini dengan navigasi kanal kategori lengkap, breaking news ticker, dan fitur push notification instan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
