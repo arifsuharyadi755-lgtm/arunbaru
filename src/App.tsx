@@ -62,6 +62,10 @@ import {
   CoffeeTipModal 
 } from './components/CoffeeTipModal';
 import { 
+  EditorialAdminPage, 
+  AdminMenuTab 
+} from './components/EditorialAdminPage';
+import { 
   Footer 
 } from './components/Footer';
 
@@ -96,8 +100,7 @@ import {
 } from 'lucide-react';
 
 const STORAGE_KEYS = {
-  BOOKMARKS: 'detik_bookmarked_ids_v1',
-  DARK_MODE: 'detik_dark_mode_v1'
+  BOOKMARKS: 'detik_bookmarked_ids_v1'
 };
 
 export default function App() {
@@ -134,6 +137,15 @@ export default function App() {
   const [isAdvertiseModalOpen, setIsAdvertiseModalOpen] = useState(false);
   const [isOpinionModalOpen, setIsOpinionModalOpen] = useState(false);
   const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<'public' | 'admin'>(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.hash === '#admin' || window.location.hash.startsWith('#/admin') || window.location.search.includes('view=admin')) {
+        return 'admin';
+      }
+    }
+    return 'public';
+  });
+  const [adminInitialTab, setAdminInitialTab] = useState<AdminMenuTab>('logo');
 
   // Active User Submitted Ad Banner (persisted)
   const [activeCustomAd, setActiveCustomAd] = useState<AdSubmission | null>(() => {
@@ -159,34 +171,21 @@ export default function App() {
     }
   });
 
-  // Dark Mode
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEYS.DARK_MODE) === 'true';
-    } catch {
-      return false;
-    }
-  });
-
   // Push Notifications state
   const [notifications, setNotifications] = useState<PushNotificationItem[]>(() => {
     return pushNotificationService.getHistory();
   });
   const [currentToastNotif, setCurrentToastNotif] = useState<PushNotificationItem | null>(null);
 
-  // Apply dark mode class to root HTML
+  // Permanently clear dark mode from HTML
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.remove('dark');
     try {
-      localStorage.setItem(STORAGE_KEYS.DARK_MODE, darkMode ? 'true' : 'false');
+      localStorage.removeItem('detik_dark_mode_v1');
     } catch {
       // ignore
     }
-  }, [darkMode]);
+  }, []);
 
   // Subscribe to push notification service
   useEffect(() => {
@@ -358,6 +357,38 @@ export default function App() {
     });
   }, []);
 
+  // Listen to hash changes for web route switching
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#admin' || window.location.hash.startsWith('#/admin')) {
+        setCurrentView('admin');
+      } else if (!window.location.hash || window.location.hash === '#') {
+        setCurrentView('public');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Open Editorial Admin Web View
+  const handleOpenEditorialAdmin = useCallback((tab: AdminMenuTab = 'logo') => {
+    setAdminInitialTab(tab);
+    setCurrentView('admin');
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#admin';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
+  // Back to Public News Web Portal
+  const handleBackToPublic = useCallback(() => {
+    setCurrentView('public');
+    if (typeof window !== 'undefined') {
+      window.location.hash = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
   // Filter Articles
   const filteredArticles = useMemo(() => {
     return articles.filter((article) => {
@@ -483,9 +514,20 @@ export default function App() {
   };
 
   const currentCategoryInfo = CATEGORIES.find(c => c.id === activeCategory) || CATEGORIES[0];
+  const isHomePage = activeCategory === 'all' && (activeSubcategory === 'Semua' || !activeSubcategory) && !activeTag && !searchQuery.trim();
+
+  // Dedicated Web Portal: Editorial Backoffice
+  if (currentView === 'admin') {
+    return (
+      <EditorialAdminPage
+        onBackToPublic={handleBackToPublic}
+        initialTab={adminInitialTab}
+      />
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors">
+    <div className="min-h-screen bg-[#f8f9fa] text-slate-900 flex flex-col font-sans">
       {/* 1. Header with Indonesian Styling & Quick Channels */}
       <Header
         activeCategory={activeCategory}
@@ -509,8 +551,6 @@ export default function App() {
         onOpenNotifSettings={() => setIsNotifModalOpen(true)}
         savedArticlesCount={bookmarkedIds.length}
         onOpenBookmarks={() => setIsBookmarksOpen(true)}
-        darkMode={darkMode}
-        onToggleDarkMode={() => setDarkMode(!darkMode)}
         onTriggerTestNotif={handleTriggerTestNotif}
         onOpenAdvertise={() => setIsAdvertiseModalOpen(true)}
       />
@@ -681,12 +721,14 @@ export default function App() {
               </div>
             )}
 
-            {/* Kolom Opini & Esai (Detikcom-style Kolom Section) */}
-            <OpinionColumnSection
-              opinionArticles={opinionArticles}
-              onSelectArticle={setSelectedArticle}
-              onOpenSubmitModal={() => setIsOpinionModalOpen(true)}
-            />
+            {/* Kolom Opini & Esai (Detikcom-style Kolom Section - Khusus Halaman Home) */}
+            {isHomePage && (
+              <OpinionColumnSection
+                opinionArticles={opinionArticles}
+                onSelectArticle={setSelectedArticle}
+                onOpenSubmitModal={() => setIsOpinionModalOpen(true)}
+              />
+            )}
           </div>
 
           {/* Right Sidebar Column (4 cols) */}

@@ -3,8 +3,6 @@ import {
   Bell, 
   Search, 
   Bookmark, 
-  Sun, 
-  Moon, 
   TrendingUp, 
   CloudSun, 
   Clock, 
@@ -13,10 +11,12 @@ import {
   Volume2,
   VolumeX,
   Sparkles,
-  Megaphone
+  Megaphone,
+  Palette
 } from 'lucide-react';
 import { CATEGORIES } from '../data/newsData';
 import { CategoryId } from '../types/news';
+import { ArunNewsLogo } from './ArunNewsLogo';
 
 interface HeaderProps {
   activeCategory: CategoryId;
@@ -30,10 +30,10 @@ interface HeaderProps {
   onOpenNotifSettings: () => void;
   savedArticlesCount: number;
   onOpenBookmarks: () => void;
-  darkMode: boolean;
-  onToggleDarkMode: () => void;
   onTriggerTestNotif: () => void;
   onOpenAdvertise?: () => void;
+  onOpenLogoCustomizer?: () => void;
+  onOpenEditorialAdmin?: (tab?: 'logo' | 'redaksi' | 'announcement') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -48,10 +48,10 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNotifSettings,
   savedArticlesCount,
   onOpenBookmarks,
-  darkMode,
-  onToggleDarkMode,
   onTriggerTestNotif,
-  onOpenAdvertise
+  onOpenAdvertise,
+  onOpenLogoCustomizer,
+  onOpenEditorialAdmin
 }) => {
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -115,9 +115,9 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onClick={onOpenAdvertise}
                   title="Pasang Iklan di Arun News"
-                  className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 rounded border border-amber-300 dark:border-amber-700/60 hover:bg-amber-100 transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 rounded-md border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition-colors shadow-xs"
                 >
-                  <Megaphone className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                  <Megaphone className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   <span>Pasang Iklan</span>
                 </button>
               )}
@@ -131,15 +131,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <Sparkles className="w-3 h-3 text-amber-500" />
                 <span>Tes Push Notif</span>
               </button>
-
-              {/* Theme Toggle */}
-              <button
-                onClick={onToggleDarkMode}
-                aria-label="Ganti mode tampilan"
-                className="p-1 rounded text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-              >
-                {darkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5" />}
-              </button>
             </div>
           </div>
         </div>
@@ -149,23 +140,17 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="bg-[#004a99] text-white py-3 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           {/* Brand Logo Lockup */}
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <button 
               onClick={() => {
                 onSelectCategory('all');
                 onSelectSubcategory('Semua');
               }}
-              className="text-left group flex items-baseline focus:outline-none"
+              className="text-left group flex items-center focus:outline-none"
+              title="Kembali ke Beranda Arun News"
             >
-              <div className="flex items-baseline tracking-tighter">
-                <span className="text-2xl sm:text-3xl font-extrabold text-white">Arun</span>
-                <span className="text-2xl sm:text-3xl font-black text-amber-300 ml-1.5">News</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 ml-1 animate-pulse inline-block shadow-xs shadow-yellow-400" />
-              </div>
+              <ArunNewsLogo size="md" />
             </button>
-            <div className="hidden xl:block text-[11px] text-blue-200 border-l border-blue-700/80 pl-3 leading-tight font-light">
-              Portal Berita Terdepan<br />& Terpercaya Indonesia
-            </div>
           </div>
 
           {/* Search Box */}

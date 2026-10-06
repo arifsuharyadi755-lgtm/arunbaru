@@ -2,14 +2,23 @@ import React from 'react';
 import { Coffee, Heart } from 'lucide-react';
 import { CATEGORIES } from '../data/newsData';
 import { CategoryId } from '../types/news';
+import { ArunNewsLogo } from './ArunNewsLogo';
 
 interface FooterProps {
   onSelectCategory: (id: CategoryId) => void;
   onOpenAdvertise?: () => void;
   onOpenCoffeeModal?: () => void;
+  onOpenLogoCustomizer?: () => void;
+  onOpenEditorialAdmin?: (tab?: 'logo' | 'redaksi' | 'announcement') => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onOpenAdvertise, onOpenCoffeeModal }) => {
+export const Footer: React.FC<FooterProps> = ({ 
+  onSelectCategory, 
+  onOpenAdvertise, 
+  onOpenCoffeeModal,
+  onOpenLogoCustomizer,
+  onOpenEditorialAdmin
+}) => {
   return (
     <footer className="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 pt-10 pb-8 mt-16 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -17,21 +26,17 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onOpenAdvertis
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-8 pb-10 border-b border-slate-800">
           {/* Col 1: Brand Info */}
           <div className="lg:col-span-2 space-y-3">
-            <div className="flex items-baseline tracking-tighter">
-              <span className="text-2xl font-extrabold text-white">Arun</span>
-              <span className="text-2xl font-black text-amber-300 ml-1.5">News</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 ml-1 inline-block" />
-            </div>
+            <ArunNewsLogo size="md" />
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              Arun News adalah portal berita Indonesia terdepan dan terpercaya, menyajikan informasi berita terkini, politik, ekonomi, olahraga, teknologi, hiburan, dan gaya hidup secara cepat dan akurat.
+              Jembatan Informasi Nusantara menyajikan liputan komprehensif, investigasi independen, politik, ekonomi, opini publik, dan inovasi teknologi secara faktual dan berimbang.
             </p>
-            <div className="pt-2 text-[11px] text-slate-500">
-              Media Jurnalistik Independen · Menghubungkan Indonesia dengan Informasi Terpercaya.
+            <div className="pt-1 text-[11px] text-slate-500">
+              Media Jurnalistik Digital Nusantara · Pedoman Pemberitaan Media Siber & Kode Etik Jurnalistik.
             </div>
 
-            {/* Saweran Kopi Feature Button */}
-            {onOpenCoffeeModal && (
-              <div className="pt-3">
+            {/* Saweran Kopi Button */}
+            <div className="pt-3 flex flex-wrap items-center gap-2">
+              {onOpenCoffeeModal && (
                 <button
                   onClick={onOpenCoffeeModal}
                   className="inline-flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all group"
@@ -40,8 +45,8 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onOpenAdvertis
                   <span>Saweran Kopi</span>
                   <span className="bg-amber-300/80 text-[10px] px-1.5 py-0.2 rounded font-extrabold ml-0.5">Dukung Redaksi</span>
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Col 2: Kanal Berita Utama */}
@@ -89,7 +94,14 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onOpenAdvertis
             </h4>
             <ul className="space-y-1.5 text-xs">
               <li><a href="#pedoman" className="hover:text-white transition-colors">Pedoman Media Siber</a></li>
-              <li><a href="#redaksi" className="hover:text-white transition-colors">Struktur Redaksi</a></li>
+              <li>
+                <button 
+                  onClick={() => onOpenEditorialAdmin ? onOpenEditorialAdmin('redaksi') : onOpenLogoCustomizer?.()}
+                  className="hover:text-white transition-colors text-left"
+                >
+                  Struktur Redaksi
+                </button>
+              </li>
               <li><a href="#tentang" className="hover:text-white transition-colors">Tentang Kami</a></li>
               <li><a href="#karir" className="hover:text-white transition-colors">Karir & Rekrutmen</a></li>
               <li>
@@ -132,9 +144,9 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onOpenAdvertis
               </button>
             )}
             <span>·</span>
-            <span>Diberdayakan dengan Sistem Notifikasi Cepat</span>
+            <span>Sistem Notifikasi Berita Nusantara</span>
             <span>·</span>
-            <span>Portal Berita Arun News 2026</span>
+            <span>Arun News Digital 2026</span>
           </div>
         </div>
       </div>
