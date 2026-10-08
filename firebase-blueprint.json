@@ -1,0 +1,319 @@
+{
+  "entities": {
+    "NewsArticle": {
+      "title": "News Article",
+      "description": "Berita jurnalistik, investigasi, laporan warga, atau opini pembaca",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier artikel unik",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Judul berita utama",
+          "maxLength": 250
+        },
+        "slug": {
+          "type": "string",
+          "description": "URL slug ramah SEO",
+          "maxLength": 150
+        },
+        "category": {
+          "type": "string",
+          "description": "Kategori kanal berita",
+          "enum": ["politik", "olahraga", "kriminal", "ekonomi", "daerah", "lain_lain", "lapor_warga", "legalitas"]
+        },
+        "categoryName": {
+          "type": "string",
+          "description": "Label kategori",
+          "maxLength": 50
+        },
+        "subCategory": {
+          "type": "string",
+          "description": "Sub-kategori atau topik spesifik",
+          "maxLength": 50
+        },
+        "summary": {
+          "type": "string",
+          "description": "Ringkasan lede artikel",
+          "maxLength": 500
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL gambar ilustrasi",
+          "maxLength": 500
+        },
+        "imageCaption": {
+          "type": "string",
+          "description": "Keterangan foto dan kredit",
+          "maxLength": 300
+        },
+        "author": {
+          "type": "string",
+          "description": "Nama wartawan, pelapor, atau penulis opini",
+          "maxLength": 100
+        },
+        "publishedAt": {
+          "type": "string",
+          "description": "Waktu publikasi terformat",
+          "maxLength": 50
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Waktu pembuatan epoch ms"
+        },
+        "readTime": {
+          "type": "string",
+          "description": "Perkiraan durasi membaca",
+          "maxLength": 30
+        },
+        "viewsCount": {
+          "type": "number",
+          "description": "Jumlah pembaca"
+        },
+        "commentCount": {
+          "type": "number",
+          "description": "Jumlah komentar"
+        }
+      },
+      "required": ["id", "title", "slug", "category", "categoryName", "summary", "author", "timestamp"]
+    },
+    "UserComment": {
+      "title": "User Comment",
+      "description": "Tanggapan pembaca pada artikel berita",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier komentar unik",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "maxLength": 128
+        },
+        "articleId": {
+          "type": "string",
+          "description": "ID artikel target",
+          "maxLength": 128
+        },
+        "author": {
+          "type": "string",
+          "description": "Nama pembaca pengirim komentar",
+          "maxLength": 100
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Inisial avatar pengirim",
+          "maxLength": 20
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Waktu komentar terformat",
+          "maxLength": 50
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp epoch komentar"
+        },
+        "text": {
+          "type": "string",
+          "description": "Isi komentar pembaca",
+          "maxLength": 1000
+        },
+        "upvotes": {
+          "type": "number",
+          "description": "Jumlah dukungan suka"
+        },
+        "downvotes": {
+          "type": "number",
+          "description": "Jumlah tidak suka"
+        }
+      },
+      "required": ["id", "articleId", "author", "text"]
+    },
+    "CoffeeDonation": {
+      "title": "Coffee Donation",
+      "description": "Donasi saweran kopi pembaca untuk redaksi independen",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier saweran unik",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "Nama donatur",
+          "maxLength": 100
+        },
+        "cups": {
+          "type": "number",
+          "description": "Jumlah cangkir kopi"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Nominal donasi rupiah"
+        },
+        "message": {
+          "type": "string",
+          "description": "Pesan semangat untuk jurnalis",
+          "maxLength": 500
+        },
+        "time": {
+          "type": "string",
+          "description": "Waktu donasi terformat",
+          "maxLength": 50
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Metode pembayaran",
+          "maxLength": 50
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Epoch waktu"
+        }
+      },
+      "required": ["id", "name", "amount", "cups"]
+    },
+    "AdSubmission": {
+      "title": "Ad Submission",
+      "description": "Pesanan slot periklanan dan kemitraan brand",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier pemesanan iklan",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "maxLength": 128
+        },
+        "brandName": {
+          "type": "string",
+          "description": "Nama merek atau instansi",
+          "maxLength": 100
+        },
+        "contactName": {
+          "type": "string",
+          "description": "Nama penanggung jawab (PIC)",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Email resmi kontak",
+          "maxLength": 100
+        },
+        "phoneWhatsapp": {
+          "type": "string",
+          "description": "Nomor WhatsApp aktif",
+          "maxLength": 50
+        },
+        "targetCategory": {
+          "type": "string",
+          "description": "Kanal target penayangan",
+          "maxLength": 50
+        },
+        "packageType": {
+          "type": "string",
+          "description": "Paket format iklan",
+          "enum": ["leaderboard_top", "sidebar_rectangle", "native_advertorial", "push_notification"]
+        },
+        "durationDays": {
+          "type": "number",
+          "description": "Durasi penayangan hari"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Tanggal mulai penayangan",
+          "maxLength": 50
+        },
+        "headline": {
+          "type": "string",
+          "description": "Judul headline iklan",
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "description": "Deskripsi atau materi promo",
+          "maxLength": 500
+        },
+        "targetUrl": {
+          "type": "string",
+          "description": "Tautan target promo",
+          "maxLength": 300
+        },
+        "totalCost": {
+          "type": "number",
+          "description": "Total biaya pemasangan"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status verifikasi redaksi",
+          "enum": ["review", "approved", "active"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Waktu pemesanan terformat",
+          "maxLength": 100
+        }
+      },
+      "required": ["id", "brandName", "contactName", "email", "phoneWhatsapp", "headline", "packageType", "totalCost"]
+    },
+    "SiteSettings": {
+      "title": "Site Settings",
+      "description": "Pengaturan identitas logo dan struktur redaksi",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Tipe konfigurasi ('logo' atau 'editorial')",
+          "maxLength": 50
+        },
+        "updatedAt": {
+          "type": "number",
+          "description": "Timestamp perbaruan terakhir"
+        }
+      },
+      "required": ["id"]
+    }
+  },
+  "firestore": {
+    "/articles/{articleId}": {
+      "schema": {
+        "$ref": "#/entities/NewsArticle"
+      },
+      "description": "Koleksi berita utama, lapor warga, dan esai opini publik"
+    },
+    "/comments/{commentId}": {
+      "schema": {
+        "$ref": "#/entities/UserComment"
+      },
+      "description": "Komentar dan aspirasi pembaca untuk artikel"
+    },
+    "/donations/{donationId}": {
+      "schema": {
+        "$ref": "#/entities/CoffeeDonation"
+      },
+      "description": "Donasi saweran kopi jurnalis"
+    },
+    "/ads/{adId}": {
+      "schema": {
+        "$ref": "#/entities/AdSubmission"
+      },
+      "description": "Pendaftaran iklan dan advertorial sponsor"
+    },
+    "/settings/{settingId}": {
+      "schema": {
+        "$ref": "#/entities/SiteSettings"
+      },
+      "description": "Konfigurasi identitas logo dan profil legal redaksi"
+    },
+    "/test/connection": {
+      "schema": {
+        "$ref": "#/entities/SiteSettings"
+      },
+      "description": "Dokumen uji konektivitas Firestore"
+    }
+  }
+}

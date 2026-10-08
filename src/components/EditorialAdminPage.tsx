@@ -46,6 +46,8 @@ import { INITIAL_ARTICLES } from '../data/newsData';
 import { OPINION_ARTICLES } from '../data/opinionData';
 import { AdSubmission } from '../types/advertising';
 import { CoffeeDonation } from './CoffeeTipModal';
+import { firestoreService } from '../services/firestoreService';
+import { auth, isUserAdmin, ADMIN_EMAIL } from '../services/firebase';
 
 interface EditorialAdminPageProps {
   onBackToPublic: () => void;
@@ -215,25 +217,58 @@ export const EditorialAdminPage: React.FC<EditorialAdminPageProps> = ({
     };
   }, []);
 
+  // Sync ads, donations, and editorial profile from Firestore
+  useEffect(() => {
+    const unsubAds = firestoreService.subscribeAds((remoteAds) => {
+      if (remoteAds && remoteAds.length > 0) {
+        setAdsList(remoteAds);
+      }
+    });
+
+    const unsubDonations = firestoreService.subscribeDonations((remoteDonations) => {
+      if (remoteDonations && remoteDonations.length > 0) {
+        setDonationsList(remoteDonations);
+      }
+    });
+
+    const unsubEditorial = firestoreService.subscribeEditorialProfile((remoteProfile) => {
+      if (remoteProfile) {
+        setEditorialProfile(prev => ({ ...prev, ...remoteProfile }));
+      }
+    });
+
+    return () => {
+      unsubAds();
+      unsubDonations();
+      unsubEditorial();
+    };
+  }, []);
+
   const handleSave = () => {
-    // 1. Save logo settings
+    // 1. Save logo settings (syncs to localStorage + Firestore)
     const updatedLogo: LogoSettings = {
       ...settings,
       customImageUrl: customUrlInput.trim() || undefined
     };
     logoService.saveSettings(updatedLogo);
 
-    // 2. Save editorial profile
+    // 2. Save editorial profile (localStorage + Firestore)
     try {
       localStorage.setItem(REDAKSI_STORAGE_KEY, JSON.stringify(editorialProfile));
     } catch {
       // ignore
     }
+    firestoreService.saveEditorialProfile(editorialProfile).catch(err => console.warn('Firestore editorial save:', err));
 
     setSaveSuccess(true);
     setTimeout(() => {
       setSaveSuccess(false);
     }, 2500);
+  };
+
+  const handleUpdateAdStatus = (adId: string, status: 'review' | 'approved' | 'active') => {
+    setAdsList(prev => prev.map(a => a.id === adId ? { ...a, status } : a));
+    firestoreService.updateAdStatus(adId, status).catch(err => console.warn('Firestore ad status:', err));
   };
 
   const handleResetLogo = () => {
@@ -304,10 +339,17 @@ export const EditorialAdminPage: React.FC<EditorialAdminPageProps> = ({
 
           {/* Right: User Status & Back to Public Portal Link */}
           <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-1.5 text-[11px] font-mono text-emerald-400 bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-800/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Firestore: stable-welder-nxctm</span>
+            </div>
+
             <div className="hidden md:flex items-center gap-2 text-xs text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-slate-300 font-medium">Administrator Redaksi:</span>
-              <span className="font-bold text-white truncate max-w-[180px]">{editorialProfile.pemimpinRedaksi}</span>
+              <span className="text-slate-300 font-medium">Administrator:</span>
+              <span className="font-bold text-white truncate max-w-[180px]">
+                {auth.currentUser?.email === ADMIN_EMAIL ? auth.currentUser.email : editorialProfile.pemimpinRedaksi}
+              </span>
             </div>
 
             {/* Link back to public web portal */}

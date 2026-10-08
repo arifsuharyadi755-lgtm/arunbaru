@@ -25,6 +25,8 @@ import {
   AdSubmission 
 } from '../types/advertising';
 import { CATEGORIES } from '../data/newsData';
+import { firestoreService } from '../services/firestoreService';
+import { auth } from '../services/firebase';
 
 interface AdvertiseModalProps {
   isOpen: boolean;
@@ -124,6 +126,9 @@ export const AdvertiseModal: React.FC<AdvertiseModalProps> = ({
       } catch {
         // ignore
       }
+
+      // Save to Firestore
+      firestoreService.addAdSubmission(newAd).catch(err => console.warn('Firestore ad save:', err));
 
       setSubmittedData(newAd);
       setIsSubmitting(false);

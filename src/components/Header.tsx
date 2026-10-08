@@ -17,6 +17,7 @@ import {
 import { CATEGORIES } from '../data/newsData';
 import { CategoryId } from '../types/news';
 import { ArunNewsLogo } from './ArunNewsLogo';
+import { FirebaseAuthStatus } from './FirebaseAuthStatus';
 
 interface HeaderProps {
   activeCategory: CategoryId;
@@ -233,6 +234,9 @@ export const Header: React.FC<HeaderProps> = ({
               <SlidersHorizontal className="w-3.5 h-3.5 text-slate-900" />
               <span>Kelola Notif</span>
             </button>
+
+            {/* Firebase User Authentication & Role */}
+            <FirebaseAuthStatus onOpenAdmin={onOpenEditorialAdmin ? () => onOpenEditorialAdmin('logo') : undefined} />
           </div>
         </div>
 

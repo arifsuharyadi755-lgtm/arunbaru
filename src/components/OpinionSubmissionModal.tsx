@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   PenTool, 
@@ -16,6 +16,7 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { NewsArticle } from '../types/news';
+import { auth } from '../services/firebase';
 
 interface OpinionSubmissionModalProps {
   isOpen: boolean;
@@ -43,6 +44,17 @@ export const OpinionSubmissionModal: React.FC<OpinionSubmissionModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedArticle, setSubmittedArticle] = useState<NewsArticle | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && auth.currentUser) {
+      if (auth.currentUser.displayName && !authorName) {
+        setAuthorName(auth.currentUser.displayName);
+      }
+      if (auth.currentUser.email && !email) {
+        setEmail(auth.currentUser.email);
+      }
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

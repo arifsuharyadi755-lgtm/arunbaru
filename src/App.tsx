@@ -88,6 +88,8 @@ import {
 import { 
   pushNotificationService 
 } from './services/pushNotificationService';
+import { testConnection } from './services/firebase';
+import { firestoreService } from './services/firestoreService';
 import { 
   Bell, 
   Zap, 
@@ -177,7 +179,7 @@ export default function App() {
   });
   const [currentToastNotif, setCurrentToastNotif] = useState<PushNotificationItem | null>(null);
 
-  // Permanently clear dark mode from HTML
+  // Permanently clear dark mode from HTML and test Firestore connection
   useEffect(() => {
     document.documentElement.classList.remove('dark');
     try {
@@ -185,6 +187,44 @@ export default function App() {
     } catch {
       // ignore
     }
+    // Test Firestore connection on app mount
+    testConnection();
+  }, []);
+
+  // Real-time Firestore sync for articles (citizen reports, opinions, news)
+  useEffect(() => {
+    const unsubscribe = firestoreService.subscribeArticles((remoteArticles) => {
+      if (remoteArticles && remoteArticles.length > 0) {
+        setArticles(prev => {
+          const map = new Map<string, NewsArticle>();
+          [...INITIAL_ARTICLES, ...OPINION_ARTICLES].forEach(a => map.set(a.id, a));
+          remoteArticles.forEach(a => map.set(a.id, a));
+          return Array.from(map.values()).sort((a, b) => b.timestamp - a.timestamp);
+        });
+
+        const remoteOpinions = remoteArticles.filter(a => a.isOpinion);
+        if (remoteOpinions.length > 0) {
+          setOpinionArticles(prev => {
+            const opMap = new Map<string, NewsArticle>();
+            OPINION_ARTICLES.forEach(a => opMap.set(a.id, a));
+            remoteOpinions.forEach(a => opMap.set(a.id, a));
+            return Array.from(opMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+          });
+        }
+      }
+    });
+
+    const unsubscribeAds = firestoreService.subscribeAds((remoteAds) => {
+      if (remoteAds && remoteAds.length > 0) {
+        const activeAd = remoteAds.find(a => a.status === 'active' || a.status === 'approved') || remoteAds[0];
+        setActiveCustomAd(activeAd);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeAds();
+    };
   }, []);
 
   // Subscribe to push notification service
@@ -311,6 +351,8 @@ export default function App() {
   // Handle citizen report submission
   const handleAddCitizenReport = useCallback((newReport: NewsArticle) => {
     setArticles(prev => [newReport, ...prev]);
+    // Save to Firestore for permanent persistence
+    firestoreService.saveArticle(newReport).catch(err => console.warn('Firestore report save:', err));
     // Dispatch instant notification
     pushNotificationService.sendNotification({
       title: `📣 Laporan Warga Baru: ${newReport.title}`,
@@ -324,6 +366,8 @@ export default function App() {
   // Handle ad campaign creation
   const handleAdCreated = useCallback((newAd: AdSubmission) => {
     setActiveCustomAd(newAd);
+    // Save to Firestore
+    firestoreService.addAdSubmission(newAd).catch(err => console.warn('Firestore ad save:', err));
     // Dispatch broadcast notification about new partner
     pushNotificationService.sendNotification({
       title: `📢 Kampanye Mitra Baru: ${newAd.brandName}`,
@@ -338,6 +382,8 @@ export default function App() {
     setOpinionArticles(prev => [newOp, ...prev]);
     setArticles(prev => [newOp, ...prev]);
     setSelectedArticle(newOp);
+    // Save to Firestore for permanent persistence
+    firestoreService.saveArticle(newOp).catch(err => console.warn('Firestore opinion save:', err));
     pushNotificationService.sendNotification({
       title: `✍️ Kolom Opini Baru: ${newOp.author}`,
       body: newOp.title,

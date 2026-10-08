@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { NewsArticle, UserComment } from '../types/news';
 import { INITIAL_COMMENTS } from '../data/newsData';
+import { firestoreService } from '../services/firestoreService';
+import { auth } from '../services/firebase';
 
 interface ArticleDetailModalProps {
   article: NewsArticle | null;
@@ -43,30 +45,53 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
   const [newCommentName, setNewCommentName] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
 
-  // Load comments
+  // Load and subscribe comments via Firestore
   useEffect(() => {
     if (!article) return;
+
+    // Increment article views count in Firestore
+    firestoreService.incrementArticleViews(article.id, article.viewsCount);
+
+    // Prefill user name if signed in with Firebase
+    if (auth.currentUser?.displayName && !newCommentName) {
+      setNewCommentName(auth.currentUser.displayName);
+    }
+
+    // Default comments fallback
+    const initialList = INITIAL_COMMENTS[article.id] || [
+      {
+        id: `c-default-${article.id}`,
+        articleId: article.id,
+        author: 'Pembaca Setia',
+        avatar: 'PS',
+        timestamp: '1 jam lalu',
+        text: 'Informasi yang sangat mendalam dan berbobot. Semoga berdampak positif untuk kemajuan bangsa.',
+        upvotes: 14,
+        downvotes: 0
+      }
+    ];
+
     try {
       const stored = localStorage.getItem(`detik_comments_${article.id}`);
       if (stored) {
         setComments(JSON.parse(stored));
       } else {
-        setComments(INITIAL_COMMENTS[article.id] || [
-          {
-            id: `c-default-${article.id}`,
-            articleId: article.id,
-            author: 'Pembaca Setia',
-            avatar: 'PS',
-            timestamp: '1 jam lalu',
-            text: 'Informasi yang sangat mendalam dan berbobot. Semoga berdampak positif untuk kemajuan bangsa.',
-            upvotes: 14,
-            downvotes: 0
-          }
-        ]);
+        setComments(initialList);
       }
     } catch {
-      // fallback
+      setComments(initialList);
     }
+
+    // Subscribe to real-time Firestore comments
+    const unsubscribe = firestoreService.subscribeComments(article.id, (remoteComments) => {
+      if (remoteComments && remoteComments.length > 0) {
+        setComments(remoteComments);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, [article]);
 
   // Stop audio on close or unmount
@@ -150,15 +175,23 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
     } catch {
       // storage error
     }
+
+    // Persist comment to Firestore & increment comment count
+    firestoreService.addComment(newComment).catch(err => console.warn('Firestore add comment:', err));
+    firestoreService.incrementArticleComments(article.id, comments.length);
   };
 
   const handleVoteComment = (commentId: string, type: 'up' | 'down') => {
+    let nextUp = 0;
+    let nextDown = 0;
     const updated = comments.map(c => {
       if (c.id === commentId) {
+        nextUp = type === 'up' ? c.upvotes + 1 : c.upvotes;
+        nextDown = type === 'down' ? c.downvotes + 1 : c.downvotes;
         return {
           ...c,
-          upvotes: type === 'up' ? c.upvotes + 1 : c.upvotes,
-          downvotes: type === 'down' ? c.downvotes + 1 : c.downvotes
+          upvotes: nextUp,
+          downvotes: nextDown
         };
       }
       return c;
@@ -169,6 +202,8 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
     } catch {
       // ignore
     }
+    // Update vote in Firestore
+    firestoreService.voteComment(commentId, nextUp, nextDown).catch(err => console.warn('Firestore vote comment:', err));
   };
 
   const fontClass = 

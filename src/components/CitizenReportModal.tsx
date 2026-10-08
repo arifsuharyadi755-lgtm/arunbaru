@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Megaphone, 
   X, 
@@ -10,6 +10,7 @@ import {
   User
 } from 'lucide-react';
 import { NewsArticle } from '../types/news';
+import { auth } from '../services/firebase';
 
 interface CitizenReportModalProps {
   isOpen: boolean;
@@ -29,6 +30,14 @@ export const CitizenReportModal: React.FC<CitizenReportModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && auth.currentUser) {
+      if (auth.currentUser.displayName && !name) {
+        setName(auth.currentUser.displayName);
+      }
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

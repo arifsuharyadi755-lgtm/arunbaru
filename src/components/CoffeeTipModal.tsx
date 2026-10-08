@@ -14,6 +14,8 @@ import {
   Flame,
   Award
 } from 'lucide-react';
+import { firestoreService } from '../services/firestoreService';
+import { auth } from '../services/firebase';
 
 interface CoffeeTipModalProps {
   isOpen: boolean;
@@ -87,8 +89,13 @@ export const CoffeeTipModal: React.FC<CoffeeTipModalProps> = ({
   const [recentDonations, setRecentDonations] = useState<CoffeeDonation[]>([]);
   const [activeTab, setActiveTab] = useState<'sawer' | 'history'>('sawer');
 
-  // Load history from localStorage
+  // Load history from localStorage and Firestore
   useEffect(() => {
+    // Prefill donor name if logged in
+    if (auth.currentUser?.displayName && !donorName) {
+      setDonorName(auth.currentUser.displayName);
+    }
+
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -100,6 +107,17 @@ export const CoffeeTipModal: React.FC<CoffeeTipModalProps> = ({
     } catch {
       setRecentDonations(INITIAL_DONATIONS);
     }
+
+    // Subscribe to Firestore donations
+    const unsubscribe = firestoreService.subscribeDonations((remoteDonations) => {
+      if (remoteDonations && remoteDonations.length > 0) {
+        setRecentDonations(remoteDonations);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -143,6 +161,9 @@ export const CoffeeTipModal: React.FC<CoffeeTipModalProps> = ({
       } catch {
         // ignore
       }
+
+      // Save to Firestore
+      firestoreService.addDonation(newDonation).catch(err => console.warn('Firestore add donation:', err));
 
       setIsProcessing(false);
       setIsSuccess(true);
